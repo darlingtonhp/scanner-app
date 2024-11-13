@@ -12,10 +12,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'QR & Barcode Scanner',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: const MyHomePage(),
     );
@@ -35,11 +36,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   _onResult(List<Barcode> barcodes) {
     for (final barcode in barcodes) {
-      var barcodeResultOne = barcode.type;
-      var barcodeResultTwo = barcode.rawValue;
       setState(() {
-        _scanType = barcodeResultOne.toString();
-        _scanRawValue = barcodeResultTwo.toString();
+        _scanType = barcode.type.toString();
+        _scanRawValue = barcode.rawValue ?? 'No Data';
       });
     }
   }
@@ -53,58 +52,62 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scanner'),
+        title: const Text('QR & Barcode Scanner'),
+        centerTitle: true,
+        backgroundColor: Colors.blueAccent,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SizedBox(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Display Scan Results in Cards
+            Expanded(
               child: ListView(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Card(
-                      child: ScanResultTile(
-                        description: 'Type of the scan',
-                        scanResult: _scanType,
-                        icon: Icons.abc_sharp,
-                      ),
-                    ),
+                  ScanResultCard(
+                    description: 'Scan Type:',
+                    icon: Icons.code,
+                    scanResult: _scanType,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Card(
-                      child: ScanResultTile(
-                        description: 'This is the barcode text',
-                        icon: Icons.add_comment,
-                        scanResult: _scanRawValue,
-                      ),
-                    ),
+                  ScanResultCard(
+                    description: 'Raw Data:',
+                    icon: Icons.text_fields,
+                    scanResult: _scanRawValue,
                   ),
                 ],
               ),
             ),
-          ),
-          TextButton(
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                builder: (context) {
-                  return Card(
-                    child: SizedBox(
-                      child: QrScannerPlusView(
-                        _onResult,
-                        multiCodeSelect: true,
-                        debug: true,
+
+            // Start Button to trigger scanning
+            ElevatedButton(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  builder: (context) {
+                    return Card(
+                      margin: const EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        height: 400,
+                        child: QrScannerPlusView(
+                          _onResult,
+                          multiCodeSelect: true,
+                          debug: false,
+                        ),
                       ),
-                    ),
-                  );
-                },
-              );
-            },
-            child: const Text('Start'),
-          ),
-        ],
+                    );
+                  },
+                );
+              },
+              child: const Text('Start Scanning'),
+              style: ElevatedButton.styleFrom(
+                primary: Colors.blueAccent,
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                textStyle: const TextStyle(fontSize: 16),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
